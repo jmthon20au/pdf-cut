@@ -1,0 +1,697 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <link rel="icon" type="image/png" href="icon.png">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+<!-- Meta tags for link preview -->
+    <meta name="description" content="عبارة عن موقع 🌐 اقتصاص ملف pdf اعتماداً على عدد الصفحات ويمكنك ايضاً اختيار الصفحات من الامام او الخلف او حتى الوسط">
+    <meta property="og:title" content="اقتصاص ملفPDF  ">
+    <meta property="og:description" content="عبارة عن موقع 🌐 اقتصاص ملف pdf اعتماداً على عدد الصفحات ويمكنك ايضاً اختيار الصفحات من الامام او الخلف او حتى الوسط">
+    <meta property="og:image" content="icon.png">
+    <meta property="og:url" content="https://www.pdfcut.free.nf">
+    <meta property="og:type" content="website">
+    <title>أداة قص ملفات PDF الاحترافية</title>
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;700&display=swap" rel="stylesheet">
+    <script src="https://unpkg.com/pdf-lib/dist/pdf-lib.min.js"></script>
+    <style>
+        /* CSS الأساسي */
+        body {
+            font-family: 'Cairo', sans-serif;
+            background-color: #f4f7f6;
+            color: #333;
+            margin: 0;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            min-height: 100vh;
+            box-sizing: border-box;
+        }
+        .container {
+            background-color: #ffffff;
+            padding: 30px 40px;
+            border-radius: 12px;
+            box-shadow: 0 6px 20px rgba(0, 0, 0, 0.1);
+            width: 100%; /* اجعل العرض 100% وقم بتحديد max-width */
+            max-width: 800px;
+            margin-bottom: 30px;
+            box-sizing: border-box; /* للتأكد من أن padding لا يزيد عن العرض المحدد */
+        }
+        h1 {
+            text-align: center;
+            color: #2c3e50;
+            margin-bottom: 30px;
+            font-size: 2.5em;
+        }
+        .upload-section, .options-section, .output-section {
+            margin-bottom: 25px;
+            padding: 20px;
+            border: 1px solid #e0e0e0;
+            border-radius: 8px;
+            background-color: #fcfcfc;
+        }
+        .upload-section {
+            text-align: center;
+            border-style: dashed;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+        }
+        .upload-section:hover {
+            background-color: #f0f0f0;
+        }
+        input[type="file"] {
+            display: none;
+        }
+        label.upload-btn {
+            display: inline-block;
+            background-color: #3498db;
+            color: white;
+            padding: 12px 25px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: bold;
+            transition: background-color 0.3s ease;
+            white-space: nowrap; /* منع انقسام النص في الأزرار */
+        }
+        label.upload-btn:hover {
+            background-color: #2980b9;
+        }
+        .file-info {
+            margin-top: 15px;
+            font-size: 0.95em;
+            color: #555;
+            text-align: right;
+        }
+        .file-info p {
+            margin: 5px 0;
+            word-wrap: break-word; /* لضمان كسر الكلمات الطويلة مثل اسم الملف */
+        }
+        .options-section h2, .output-section h2 {
+            color: #34495e;
+            margin-bottom: 20px;
+            font-size: 1.8em;
+            text-align: right;
+        }
+        .form-group {
+            margin-bottom: 15px;
+            text-align: right;
+        }
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: bold;
+            color: #444;
+        }
+        .form-group input[type="number"],
+        .form-group input[type="text"] {
+            width: calc(100% - 22px); /* لتأخذ العرض الكامل مع مراعاة البادينغ والحدود */
+            padding: 10px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            font-size: 1em;
+            text-align: right;
+            box-sizing: border-box; /* لضمان أن العرض يشمل البادينغ والحدود */
+        }
+        .form-group input[type="number"]:focus,
+        .form-group input[type="text"]:focus {
+            border-color: #3498db;
+            outline: none;
+            box-shadow: 0 0 5px rgba(52, 152, 219, 0.5);
+        }
+        .radio-group {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            margin-top: 10px;
+            text-align: right;
+        }
+        .radio-group label { /* تنسيق أفضل لخيارات الراديو */
+            display: flex;
+            align-items: center;
+            cursor: pointer;
+            font-weight: normal; /* لإلغاء تنسيق label الافتراضي */
+        }
+        .radio-group input[type="radio"] {
+            margin-left: 8px; /* مسافة للزر قبل النص */
+            margin-right: 0;
+        }
+        .action-buttons {
+            text-align: center;
+            margin-top: 30px;
+        }
+        .action-buttons button {
+            background-color: #27ae60;
+            color: white;
+            padding: 14px 30px;
+            border: none;
+            border-radius: 80px;
+            font-size: 1.2em;
+            cursor: pointer;
+            transition: background-color 0.3s ease, transform 0.2s ease;
+            width: 100%; /* لجعل الزر يأخذ العرض الكامل على الشاشات الصغيرة */
+            max-width: 300px; /* تحديد أقصى عرض له */
+        }
+        .action-buttons button:hover {
+            background-color: #229a56;
+            transform: translateY(-2px);
+        }
+        .footer {
+            margin-top: 40px;
+            padding-top: 20px;
+            border-top: 1px solid #e0e0e0;
+            text-align: center;
+            width: 100%;
+            max-width: 800px;
+            display: flex; /* استخدام فليكس بوكس للأزرار */
+            flex-wrap: wrap; /* للسماح للأزرار بالانتقال إلى سطر جديد */
+            justify-content: center; /* لتوسيط الأزرار */
+            gap: 15px; /* مسافة بين الأزرار */
+        }
+        .footer button {
+            background-color: #4f919e;
+            color: white;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 20px;
+            cursor: pointer;
+            font-size: 1em;
+            flex-grow: 1; /* للسماح للأزرار بالنمو */
+            max-width: 200px; /* تحديد أقصى عرض لكل زر */
+            transition: background-color 0.3s ease;
+        }
+        .footer button:hover {
+            background-color: #6c7a7d;
+        }
+        .popup {
+            display: none; /* مخفي بشكل افتراضي */
+            position: fixed;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.6);
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+        }
+        .popup-content {
+            background-color: #ffffff;
+            padding: 30px;
+            border-radius: 10px;
+            text-align: center;
+            width: 90%; /* نسبة مئوية للعرض */
+            max-width: 500px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+            position: relative;
+            animation: fadeIn 0.3s ease-out;
+            box-sizing: border-box;
+        }
+        .popup-content h3 {
+            color: #34495e;
+            margin-bottom: 15px;
+        }
+        .popup-content p {
+            line-height: 1.6;
+            margin-bottom: 20px;
+            color: #555;
+            text-align: right;
+            word-wrap: break-word;
+        }
+        .popup-content ul {
+            text-align: right;
+            padding-right: 20px; /* لترتيب القائمة النقطية */
+        }
+        .popup-content ul li {
+            margin-bottom: 5px;
+        }
+        .popup-content a {
+            color: #3498db;
+            text-decoration: none;
+            font-weight: bold;
+        }
+        .popup-content a:hover {
+            text-decoration: underline;
+        }
+        .close-btn {
+            position: absolute;
+            top: 15px;
+            left: 15px;
+            font-size: 1.8em;
+            cursor: pointer;
+            color: #888;
+        }
+        .close-btn:hover {
+            color: #333;
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(-20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        /* لإخفاء حقول الإدخال غير المستخدمة بواسطة JS */
+        .hidden-input {
+            display: none;
+        }
+        .loading-overlay {
+            display: none; /* مخفي بشكل افتراضي */
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.7);
+            z-index: 2000;
+            justify-content: center;
+            align-items: center;
+            color: white;
+            font-size: 1.5em;
+            flex-direction: column;
+            text-align: center;
+        }
+        .loader {
+            border: 8px solid #f3f3f3; /* Light grey */
+            border-top: 8px solid #3498db; /* Blue */
+            border-radius: 50%;
+            width: 60px;
+            height: 60px;
+            animation: spin 2s linear infinite;
+            margin-bottom: 20px;
+        }
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        /* Media Queries للتصميم المتجاوب */
+
+        /* للهواتف الصغيرة جداً (أقل من 480px) */
+        @media (max-width: 480px) {
+            body {
+                padding: 10px;
+            }
+            .container {
+                padding: 20px 15px;
+            }
+            h1 {
+                font-size: 1.8em;
+            }
+            .options-section h2, .output-section h2 {
+                font-size: 1.5em;
+            }
+            label.upload-btn {
+                padding: 10px 15px;
+                font-size: 0.9em;
+            }
+            .action-buttons button, .footer button {
+                font-size: 1em;
+                padding: 12px 20px;
+                width: 100%; /* تأكد من أن الأزرار تأخذ العرض الكامل */
+                max-width: none; /* إزالة قيود max-width */
+            }
+            .footer {
+                flex-direction: column; /* جعل الأزرار تتكدس عمودياً */
+                gap: 10px;
+            }
+            .popup-content {
+                padding: 20px;
+                font-size: 0.9em;
+            }
+            .popup-content h3 {
+                font-size: 1.3em;
+            }
+        }
+
+        /* للأجهزة اللوحية والشاشات المتوسطة (481px - 768px) */
+        @media (min-width: 481px) and (max-width: 768px) {
+            .container {
+                padding: 25px 30px;
+            }
+            h1 {
+                font-size: 2.2em;
+            }
+            .options-section h2, .output-section h2 {
+                font-size: 1.6em;
+            }
+            .action-buttons button {
+                max-width: 250px; /* تقليل أقصى عرض قليلاً */
+            }
+            .footer button {
+                max-width: 180px;
+            }
+        }
+
+        /* للشاشات الكبيرة (أكبر من 768px) - التصميم الحالي جيد لها */
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>أداة قص ملفات PDF الاحترافية</h1>
+
+        <div class="upload-section" id="uploadArea">
+            <input type="file" id="pdfFile" accept=".pdf">
+            <label for="pdfFile" class="upload-btn">اختر ملف PDF أو اسحبه هنا</label>
+            <div class="file-info" id="fileInfo">
+                <p>لم يتم اختيار ملف بعد.</p>
+            </div>
+        </div>
+
+        <div class="options-section">
+            <h2>خيارات القص</h2>
+            <div class="radio-group">
+                <label>
+                    <input type="radio" name="cutOption" value="range" checked> قص عدد معين من الصفحات (من البداية أو النهاية)
+                </label>
+                <div class="form-group" id="rangeOptions">
+                    <label for="numPages">عدد الصفحات المراد قصها:</label>
+                    <input type="number" id="numPages" min="1" placeholder="مثلاً: 10">
+                    <label>
+                        <input type="radio" name="rangeType" value="start" checked> من البداية
+                    </label>
+                    <label>
+                        <input type="radio" name="rangeType" value="end"> من النهاية
+                    </label>
+                </div>
+
+                <label>
+                    <input type="radio" name="cutOption" value="specific"> قص صفحات محددة بالأرقام
+                </label>
+                <div class="form-group hidden-input" id="specificOptions">
+                    <label for="specificPages">أرقام الصفحات (مفصولة بفاصلة، مثلاً: 8, 10, 15):</label>
+                    <input type="text" id="specificPages" placeholder="مثلاً: 8, 10, 15">
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label for="newFileName">اسم الملف الجديد (اختياري):</label>
+                <input type="text" id="newFileName" placeholder="مثلاً: تقرير_مختصر">
+            </div>
+        </div>
+
+        <div class="action-buttons">
+            <button id="processPdfBtn">قص الملف</button>
+        </div>
+
+        <div class="output-section hidden-input" id="outputSection">
+            <h2>الملف الناتج</h2>
+            <div class="file-info" id="outputFileInfo">
+                <p>سيظهر رابط التنزيل هنا بعد المعالجة.</p>
+            </div>
+            <a href="#" id="downloadLink" download class="hidden-input" style="display: none; background-color: #3498db; color: white; padding: 10px 20px; border-radius: 8px; text-decoration: none; margin-top: 15px; display: inline-block;">تحميل الملف الجديد</a>
+        </div>
+    </div>
+
+    <div class="footer">
+        <button id="howToUseBtn">كيفية الاستخدام</button>
+        <button id="developerBtn">المطور</button>
+    </div>
+
+    <div class="popup" id="howToUsePopup">
+        <div class="popup-content">
+            <span class="close-btn" id="closePopupBtn">&times;</span>
+            <h3>كيفية استخدام الأداة</h3>
+            <p>
+                <b>مرحباً بك في أداة قص ملفات PDF!</b>
+                <br><br>
+                1.  <b>تحميل الملف:</b> اضغط على "اختر ملف PDF" أو اسحب ملف PDF إلى المنطقة المخصصة. ستظهر تفاصيل الملف الذي تم تحميله.
+                <br>
+                2.  <b>اختيار طريقة القص:</b>
+                    <ul>
+                        <li><b>قص عدد معين:</b> أدخل عدد الصفحات التي تريد قصها واختر ما إذا كنت تريد قصها من بداية الملف أو نهايته.</li>
+                        <li><b>قص صفحات محددة:</b> أدخل أرقام الصفحات التي تريد استخراجها فقط، مفصولة بفاصلة (مثلاً: 5, 12, 20).</li>
+                    </ul>
+                3.  <b>اسم الملف الجديد:</b> يمكنك إدخال اسم لملفك الجديد (اختياري).
+                <br>
+                4.  <b>بدء القص:</b> اضغط على زر "قص الملف".
+                <br>
+                5.  <b>تنزيل:</b> بعد الانتهاء، سيظهر رابط لتنزيل ملفك الجديد.
+            </p>
+            <p style="text-align: center;">لمزيد من التفاصيل، يمكنك <a href="https://t.me/nnnmmm200/66" target="_blank">زيارة صفحة المساعدة</a>.</p>
+        </div>
+    </div>
+
+    <div class="loading-overlay" id="loadingOverlay">
+        <div class="loader"></div>
+        <p id="loadingMessage">جاري معالجة ملف PDF... قد يستغرق الأمر بعض الوقت.</p>
+    </div>
+
+    <script>
+        // هذا هو كود JavaScript الجديد الذي يستخدم pdf-lib
+        const { PDFDocument } = PDFLib; // استيراد PDFDocument من المكتبة
+
+        const pdfFile = document.getElementById('pdfFile');
+        const uploadArea = document.getElementById('uploadArea');
+        const fileInfo = document.getElementById('fileInfo');
+        const processPdfBtn = document.getElementById('processPdfBtn');
+        const howToUseBtn = document.getElementById('howToUseBtn');
+        const developerBtn = document.getElementById('developerBtn');
+        const howToUsePopup = document.getElementById('howToUsePopup');
+        const closePopupBtn = document.getElementById('closePopupBtn');
+        const rangeOptions = document.getElementById('rangeOptions');
+        const specificOptions = document.getElementById('specificOptions');
+        const cutOptionRadios = document.querySelectorAll('input[name="cutOption"]');
+        const outputSection = document.getElementById('outputSection');
+        const outputFileInfo = document.getElementById('outputFileInfo');
+        const downloadLink = document.getElementById('downloadLink');
+        const newFileNameInput = document.getElementById('newFileName');
+        const numPagesInput = document.getElementById('numPages');
+        const specificPagesInput = document.getElementById('specificPages');
+        const loadingOverlay = document.getElementById('loadingOverlay');
+        const loadingMessage = document.getElementById('loadingMessage');
+
+        let uploadedFile = null;
+        let originalPdfBytes = null; // لتخزين بايتات الملف الأصلي
+
+        // وظيفة لإظهار/إخفاء شاشة التحميل
+        function showLoading(message = "جاري معالجة ملف PDF...") {
+            loadingMessage.textContent = message;
+            loadingOverlay.style.display = 'flex';
+        }
+
+        function hideLoading() {
+            loadingOverlay.style.display = 'none';
+        }
+
+        // وظيفة لإخفاء وإظهار خيارات القص
+        cutOptionRadios.forEach(radio => {
+            radio.addEventListener('change', (event) => {
+                if (event.target.value === 'range') {
+                    rangeOptions.classList.remove('hidden-input');
+                    specificOptions.classList.add('hidden-input');
+                } else {
+                    rangeOptions.classList.add('hidden-input');
+                    specificOptions.classList.remove('hidden-input');
+                }
+            });
+        });
+
+        // التعامل مع تحميل الملف (زر الاختيار)
+        pdfFile.addEventListener('change', async (event) => {
+            const file = event.target.files[0];
+            if (file && file.type === 'application/pdf') {
+                uploadedFile = file;
+                showLoading("جاري قراءة ملف PDF وتحديد عدد الصفحات...");
+                try {
+                    // قراءة الملف كـ ArrayBuffer لقراءة عدد الصفحات
+                    originalPdfBytes = await file.arrayBuffer();
+                    const pdfDoc = await PDFDocument.load(originalPdfBytes);
+                    const totalPages = pdfDoc.getPageCount();
+                    displayFileInfo(file, totalPages);
+                } catch (error) {
+                    console.error("خطأ في قراءة ملف PDF:", error);
+                    alert('تعذر قراءة ملف PDF أو تحديد عدد صفحاته. الرجاء التأكد من صلاحية الملف.');
+                    uploadedFile = null;
+                    originalPdfBytes = null;
+                    fileInfo.innerHTML = '<p>لم يتم اختيار ملف بعد.</p>';
+                } finally {
+                    hideLoading();
+                }
+            } else {
+                alert('الرجاء اختيار ملف PDF صالح.');
+                uploadedFile = null;
+                originalPdfBytes = null;
+                fileInfo.innerHTML = '<p>لم يتم اختيار ملف بعد.</p>';
+            }
+        });
+
+        // التعامل مع السحب والإفلات
+        uploadArea.addEventListener('dragover', (event) => {
+            event.preventDefault();
+            uploadArea.style.backgroundColor = '#e0e0e0';
+        });
+
+        uploadArea.addEventListener('dragleave', () => {
+            uploadArea.style.backgroundColor = '#fcfcfc';
+        });
+
+        uploadArea.addEventListener('drop', async (event) => {
+            event.preventDefault();
+            uploadArea.style.backgroundColor = '#fcfcfc';
+            const file = event.dataTransfer.files[0];
+            if (file && file.type === 'application/pdf') {
+                uploadedFile = file;
+                showLoading("جاري قراءة ملف PDF وتحديد عدد الصفحات...");
+                try {
+                    originalPdfBytes = await file.arrayBuffer();
+                    const pdfDoc = await PDFDocument.load(originalPdfBytes);
+                    const totalPages = pdfDoc.getPageCount();
+                    displayFileInfo(file, totalPages);
+                } catch (error) {
+                    console.error("خطأ في قراءة ملف PDF:", error);
+                    alert('تعذر قراءة ملف PDF أو تحديد عدد صفحاته. الرجاء التأكد من صلاحية الملف.');
+                    uploadedFile = null;
+                    originalPdfBytes = null;
+                    fileInfo.innerHTML = '<p>لم يتم اختيار ملف بعد.</p>';
+                } finally {
+                    hideLoading();
+                }
+            } else {
+                alert('الرجاء إسقاط ملف PDF صالح.');
+                uploadedFile = null;
+                originalPdfBytes = null;
+                fileInfo.innerHTML = '<p>لم يتم اختيار ملف بعد.</p>';
+            }
+        });
+
+        // عرض معلومات الملف المحمل
+        function displayFileInfo(file, totalPages = 'غير معروف') {
+            let fileSize = (file.size / (1024 * 1024)).toFixed(2); // Convert to MB
+            fileInfo.innerHTML = `
+                <p><strong>اسم الملف:</strong> ${file.name}</p>
+                <p><strong>حجم الملف:</strong> ${fileSize} ميغابايت</p>
+                <p><strong>عدد الصفحات الإجمالي:</strong> ${totalPages} صفحة</p>
+            `;
+        }
+
+        // معالجة القص باستخدام pdf-lib
+        processPdfBtn.addEventListener('click', async () => {
+            if (!uploadedFile || !originalPdfBytes) {
+                alert('الرجاء تحميل ملف PDF أولاً.');
+                return;
+            }
+
+            showLoading("جاري قص ملف PDF... يرجى الانتظار.");
+            outputSection.classList.remove('hidden-input');
+            downloadLink.style.display = 'none'; // أخفِ رابط التحميل حتى تكتمل العملية
+            outputFileInfo.innerHTML = `<p>جاري معالجة الملف... الرجاء الانتظار.</p>`;
+
+            try {
+                const originalPdfDoc = await PDFDocument.load(originalPdfBytes);
+                const newPdfDoc = await PDFDocument.create();
+                const totalPages = originalPdfDoc.getPageCount();
+
+                const cutOption = document.querySelector('input[name="cutOption"]:checked').value;
+                let pagesToExtract = []; // مصفوفة لتخزين أرقام الصفحات (فهرسة 1)
+
+                if (cutOption === 'range') {
+                    const numPages = parseInt(numPagesInput.value);
+                    const rangeType = document.querySelector('input[name="rangeType"]:checked').value;
+
+                    if (isNaN(numPages) || numPages <= 0) {
+                        alert('الرجاء إدخال عدد صحيح موجب للصفحات المراد قصها.');
+                        hideLoading();
+                        return;
+                    }
+                    if (numPages > totalPages) {
+                        alert(`عدد الصفحات المطلوب قصها (${numPages}) أكبر من إجمالي صفحات الملف (${totalPages}).`);
+                        hideLoading();
+                        return;
+                    }
+
+                    if (rangeType === 'start') {
+                        for (let i = 1; i <= numPages; i++) {
+                            pagesToExtract.push(i);
+                        }
+                    } else { // end
+                        for (let i = totalPages - numPages + 1; i <= totalPages; i++) {
+                            pagesToExtract.push(i);
+                        }
+                    }
+                } else { // specific
+                    const specificPagesText = specificPagesInput.value.trim();
+                    if (!specificPagesText) {
+                        alert('الرجاء إدخال أرقام الصفحات المراد قصها.');
+                        hideLoading();
+                        return;
+                    }
+                    // تحويل السلسلة إلى مصفوفة من الأرقام الصحيحة
+                    const parsedPages = specificPagesText.split(',').map(page => parseInt(page.trim())).filter(num => !isNaN(num) && num >= 1);
+
+                    const invalidPages = parsedPages.filter(page => page > totalPages);
+                    if (invalidPages.length > 0) {
+                        alert(`تحذير: الصفحات التالية خارج نطاق الملف وسيتم تجاهلها: ${invalidPages.join(', ')}`);
+                    }
+                    
+                    pagesToExtract = parsedPages.filter(page => page <= totalPages);
+                    if (pagesToExtract.length === 0) {
+                        alert('لم يتم تحديد أي صفحات صالحة للقص. الرجاء التحقق من أرقام الصفحات.');
+                        hideLoading();
+                        return;
+                    }
+                    pagesToExtract = [...new Set(pagesToExtract)].sort((a, b) => a - b); // إزالة التكرارات والفرز
+                }
+
+                // استيراد الصفحات المختارة إلى المستند الجديد
+                // ملاحظة: copyPages تأخذ مصفوفة من الفهارس (تبدأ من 0)، لذلك نطرح 1 من أرقام الصفحات
+                const copiedPages = await newPdfDoc.copyPages(originalPdfDoc, pagesToExtract.map(pageNum => pageNum - 1));
+                copiedPages.forEach(page => newPdfDoc.addPage(page));
+
+                // حفظ الملف الجديد كـ Uint8Array
+                const pdfBytes = await newPdfDoc.save();
+
+                // إنشاء رابط تنزيل
+                const blob = new Blob([pdfBytes], { type: 'application/pdf' });
+                const url = URL.createObjectURL(blob);
+
+                let finalFileName = newFileNameInput.value.trim();
+                if (!finalFileName) {
+                    finalFileName = `cut_${uploadedFile.name}`;
+                }
+                if (!finalFileName.toLowerCase().endsWith('.pdf')) {
+                    finalFileName += '.pdf';
+                }
+
+                downloadLink.href = url;
+                downloadLink.download = finalFileName;
+
+                outputFileInfo.innerHTML = `
+                    <p>تم قص الملف بنجاح!</p>
+                    <p>اسم الملف الناتج: <strong>${finalFileName}</strong></p>
+                    <p>عدد الصفحات بالملف الجديد: <strong>${pagesToExtract.length}</strong></p>
+                    <p>حجم الملف الجديد: <strong>${(blob.size / (1024 * 1024)).toFixed(2)} ميغابايت</strong></p>
+                `;
+                downloadLink.style.display = 'inline-block';
+            } catch (error) {
+                console.error('حدث خطأ أثناء معالجة الملف:', error);
+                alert(`حدث خطأ أثناء معالجة ملف PDF. الرجاء التحقق من الملف والخيارات. رسالة الخطأ: ${error.message}`);
+                outputFileInfo.innerHTML = `<p style="color: red;">حدث خطأ: ${error.message || 'لا يمكن معالجة الملف. الرجاء المحاولة مرة أخرى.'}</p>`;
+                downloadLink.style.display = 'none';
+            } finally {
+                hideLoading();
+            }
+        });
+
+        // التعامل مع زر "كيفية الاستخدام"
+        howToUseBtn.addEventListener('click', () => {
+            howToUsePopup.style.display = 'flex';
+        });
+
+        // التعامل مع إغلاق النافذة المنبثقة
+        closePopupBtn.addEventListener('click', () => {
+            howToUsePopup.style.display = 'none';
+        });
+
+        // إغلاق النافذة المنبثقة عند النقر خارجها
+        howToUsePopup.addEventListener('click', (event) => {
+            if (event.target === howToUsePopup) {
+                howToUsePopup.style.display = 'none';
+            }
+        });
+
+        // التعامل مع زر "المطور"
+        developerBtn.addEventListener('click', () => {
+            window.open('https://www.ali-Altaee.free.nf', '_blank'); // استبدل بالرابط الخاص بك
+        });
+
+    </script>
+</body>
+</html>
